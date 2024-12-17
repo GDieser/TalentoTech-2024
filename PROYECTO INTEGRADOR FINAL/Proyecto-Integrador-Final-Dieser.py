@@ -26,7 +26,7 @@ inventario = [
 ]
 
 
-def mostrarMenuInicio():
+def mostrarMenuPrincipal():
     #Menú Principal
     #Me imprime unos separadores
     print("=" * 30)
@@ -36,7 +36,10 @@ def mostrarMenuInicio():
     print(" 2- 📄 Mostrar lista de Juegos")
     print(" 3- ♻️  Modificar un Juego")
     print(" 4- ❌ Eliminar un Juego")
-    print(" 5- 🙌  Prestar un Juego")
+    print(" 5- 🔍 Buscar un Juego")
+    print(" 6- 🔍 Prestar un Juego")
+    print(" 7- 📊 Ver Juegos con Stock bajo")
+    print(" 8- 📁 Crear Base de Datos")
     print()
     print(" 0- ❎ Salir del menú")
     print("=" * 30)
@@ -48,7 +51,7 @@ def mostrarMenuInicio():
 def gestionarLocal(inventario):
     #Acá redireccionamos a la funcion correspondiente
     while True:
-        opcion = mostrarMenuInicio()
+        opcion = mostrarMenuPrincipal()
 
         if opcion == 1 :
             agregarNuevoJuego(inventario)            
@@ -61,17 +64,26 @@ def gestionarLocal(inventario):
             eliminarUnJuego(inventario)
             pass
         elif opcion == 5:
-            prestarUnJuego(inventario)
+            buscarJuegoPorNombre(inventario)
+            pass
+        elif opcion == 6:
+            #verStockBajo(inventario)
+            pass
+        elif opcion == 7:
+            verStockBajo(inventario)
+            pass
+        elif opcion == 8:
+            inicializarBaseDeDatos()
             pass
         elif opcion == 0:
             print('Hasta la próxima! 🖖')
             break
         else:
             print('Opción incorrecta.')
-    
+
+#1   
 def agregarNuevoJuego(inventario):
 
-    codigo = input('Ingrese el codigo del libro: ')
     titulo = input('Ingrese el titulo del libro: ')
 
     while True:
@@ -92,11 +104,12 @@ def agregarNuevoJuego(inventario):
         'titulo' : titulo,
         'copias' : copias
     }
-    #agregando a lista de biblioteca un diccionario de libro
+    
     inventario.append(libro)
-    print(f'-Juego {titulo} agregado. Codigo: # ' ) #{idCodigo}
+    print(f'-Juego {titulo} agregado. Codigo: # ' ) 
     print('-Agregado con éxito!' )
 
+#2
 def mostrarListaJuegos(inventario):    
 
     if not inventario:
@@ -114,7 +127,7 @@ def mostrarListaJuegos(inventario):
         for librito in inventario:            
             print(f"{librito['codigo']:<10} |{librito['titulo']:<30} |{librito['copias']:<10}")
         
-
+#3
 def modificarJuego(inventario):
 
     #Implementar buscar por ID y por Titulo.
@@ -135,20 +148,20 @@ def modificarJuego(inventario):
     else:
         print('Juego no encontrado...')
         
-
+#4
 def eliminarUnJuego(inventario):
 
     codigo = input("Ingrese ID del Juego: ")
 
-    posicion = buscarUnJuego(inventario, codigo)  # Ignoramos el libro, usamos el índice
+    posicion = buscarUnJuego(inventario, codigo)
 
     if posicion is not None:
 
-        inventario.pop(posicion)  # Elimina el libro usando el índice
+        inventario.pop(posicion)
         print(f"El Juego ID '{codigo}' fue eliminado exitosamente.")
 
-
-def prestarUnJuego(inventario):
+#5
+def buscarJuegoPorNombre(inventario):
 
     codigo = input('Ingrese ID del Juego a prestar: ')
 
@@ -173,6 +186,9 @@ def prestarUnJuego(inventario):
     else:
         print(f"Id no encontrado...")    
 
+#6
+def verStockBajo(inventario):
+    print("Lala")
 
 def buscarUnJuego(inventario, codigo_busqueda=''):
   
@@ -186,6 +202,105 @@ def buscarUnJuego(inventario, codigo_busqueda=''):
 
     return posicion
 
+#Creamos la DB con algunos registros
+def inicializarBaseDeDatos():
+
+    import sqlite3
+    conexion = sqlite3.connect("LocalDeJuegos.db")
+    cursor = conexion.cursor()
+
+    query = '''
+        CREATE TABLE IF NOT EXISTS Juegos(
+            IdJuego INTEGER PRIMARY KEY AUTOINCREMENT,
+            Titulo TEXT NOT NULL,
+            Desarollador TEXT,
+            Plataforma TEXT,
+            Copias INTEGER NOT NULL CHECK(typeof(copias) = 'integer')
+        )
+    '''
+    cursor.execute(query)
+    conexion.commit()
+
+    query = '''
+        INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
+        VALUES (?, ?, ?, ?)
+    '''
+    params = ("Pacman", "Consola", "Atari", 35)
+
+    cursor.execute(query, params)
+    conexion.commit()
+
+    query = '''
+        INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
+        VALUES (?, ?, ?, ?)
+    '''
+    params = ("Half-Life", "PC", "Sierra", 50)
+
+    cursor.execute(query, params)
+    conexion.commit()
+
+    query = '''
+        INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
+        VALUES (?, ?, ?, ?)
+    '''
+    params = ("Halo", "PC/XBOX", "Microsoft", 30)
+
+    cursor.execute(query, params)
+    conexion.commit()
+
+    query = '''
+        INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
+        VALUES (?, ?, ?, ?)
+    '''
+    params = ("Doom", "PC", "ID", 25)
+
+    cursor.execute(query, params)
+    conexion.commit()
+
+    query = '''
+        INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
+        VALUES (?, ?, ?, ?)
+    '''
+    params = ("Counter-Strike", "PC", "Valve", 55)
+
+    cursor.execute(query, params)
+    conexion.commit()
+
+    query = '''
+        INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
+        VALUES (?, ?, ?, ?)
+    '''
+    params = ("BioShock", "PC/Consola", "2K", 35)
+
+    cursor.execute(query, params)
+    conexion.commit()
+
+    conexion.close()
+    
+    print("Base de Datos creada exitosamente!")
+
+#Modularizamos la consultas
+def ejecutarConsulta(query, params=(), fetch=False):
+    
+    import sqlite3
+    
+    try:
+
+        with sqlite3.connect("LocalDeJuegos.db") as conexion:
+
+            cursor = conexion.cursor() 
+            cursor.execute(query, params)
+
+            if fetch:
+                return cursor.fetchall()
+            
+            conexion.commit()
+            return True
+    #No necesitamoas cerrar la conexion conexion.close(), se administra automaticamente
+    except sqlite3.Error as excepcion:
+
+        print(f"Error en la base de datos: {excepcion}")
+        return False
 
 #algortimo principal
 gestionarLocal(inventario)
