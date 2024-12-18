@@ -12,19 +12,40 @@ Requerimientos
 4. Generar reportes de productos con bajo stock.
 
 """
-inventario = [    
-    {
-        'codigo':'1000',
-        'titulo':'Halo',
-        'copias' : 5
-    },
-    {
-        'codigo':'1001',
-        'titulo':'Half-Life',
-        'copias' : 15
-    }
-]
 
+
+def gestionarLocal():
+    #Acá redireccionamos a la funcion correspondiente
+    while True:
+        opcion = mostrarMenuPrincipal()
+
+        if opcion == 1 :
+            agregarNuevoJuego()            
+        elif opcion == 2:
+            mostrarListaJuegos()            
+        elif opcion == 3:
+            modificarJuego()
+            pass
+        elif opcion == 4:
+            eliminarUnJuego()
+            pass
+        elif opcion == 5:
+            buscarUnJuego()
+            pass
+        elif opcion == 6:
+            prestarUnJuego()
+            pass
+        elif opcion == 7:
+            verStockBajo()
+            pass
+        elif opcion == 8:
+            inicializarBaseDeDatos()
+            pass
+        elif opcion == 0:
+            print('Hasta la próxima! 🖖')
+            break
+        else:
+            print('Opción incorrecta.')
 
 def mostrarMenuPrincipal():
     #Menú Principal
@@ -37,7 +58,7 @@ def mostrarMenuPrincipal():
     print(" 3- ♻️  Modificar un Juego")
     print(" 4- ❌ Eliminar un Juego")
     print(" 5- 🔍 Buscar un Juego")
-    print(" 6- 🔍 Prestar un Juego")
+    print(" 6- 🤝 Prestar un Juego")
     print(" 7- 📊 Ver Juegos con Stock bajo")
     print(" 8- 📁 Crear Base de Datos")
     print()
@@ -48,41 +69,8 @@ def mostrarMenuPrincipal():
 
     return opcion
 
-def gestionarLocal(inventario):
-    #Acá redireccionamos a la funcion correspondiente
-    while True:
-        opcion = mostrarMenuPrincipal()
-
-        if opcion == 1 :
-            agregarNuevoJuego(inventario)            
-        elif opcion == 2:
-            mostrarListaJuegos(inventario)            
-        elif opcion == 3:
-            modificarJuego(inventario)
-            pass
-        elif opcion == 4:
-            eliminarUnJuego(inventario)
-            pass
-        elif opcion == 5:
-            buscarJuegoPorTitulo()
-            pass
-        elif opcion == 6:
-            #verStockBajo(inventario)
-            pass
-        elif opcion == 7:
-            verStockBajo(inventario)
-            pass
-        elif opcion == 8:
-            inicializarBaseDeDatos()
-            pass
-        elif opcion == 0:
-            print('Hasta la próxima! 🖖')
-            break
-        else:
-            print('Opción incorrecta.')
-
 #1   
-def agregarNuevoJuego(inventario):
+def agregarNuevoJuego():
 
     titulo = input('Ingrese el Titulo del Juego: ')
     juego = buscarJuegoPorTitulo(titulo)
@@ -101,24 +89,30 @@ def agregarNuevoJuego(inventario):
             except ValueError:
                 print('ERROR DE INGRESO')
         query = '''
-        INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
-        VALUES (?, ?, ?, ?)
+            INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
+            VALUES (?, ?, ?, ?)
         '''
         params = (titulo, desarollador, plataforma, copias)
         if ejecutarConsulta(query,params):
             print(f'Juego {titulo} agregado con exito!')
     else:
-        print('Titulo ya ingresaso, compruebe la lista')
+        print('Titulo ya ingresado, compruebe la lista')
 
 
 #2
-def mostrarListaJuegos(inventario):    
+def mostrarListaJuegos():    
 
-    if not inventario:
+    query = """
+        SELECT * FROM Juegos
+    """
+
+    juegos = ejecutarConsulta(query, '', True)
+
+    if not juegos:
         print('Sin stock de juegos disponible...')     
 
     else:
-        encabezado = f"{'Codigo':<10} |{'Titulo':<30} |{'Copias':<10}"
+        encabezado = f"{'ID':^{5}} |{'Titulo':^{20}} |{'Plataforma':^{15}} |{'Desarollador':^{15}} |{'Stock':^{4}}"
         separador = "-" * len(encabezado)
 
         print('\n 📄 Listado de Juegos:')
@@ -126,47 +120,101 @@ def mostrarListaJuegos(inventario):
         print(encabezado)
         print(separador)
 
-        for librito in inventario:            
-            print(f"{librito['codigo']:<10} |{librito['titulo']:<30} |{librito['copias']:<10}")
+        for juego in juegos:    
+            Idjuego, Titulo, Plataforma, Desarrollador, Cantidad = juego        
+            print(
+                f"{Idjuego:^{5}} |{Titulo:^{20}} |"
+                f"{Plataforma:^{15}} |{Desarrollador:^{15}} |"
+                f"{Cantidad:^{4}}"
+            )
         
 #3
-def modificarJuego(inventario):
+def modificarJuego():
 
-    #Implementar buscar por ID y por Titulo.
-    codigo = input('Ingrese el ID del Juego: ')
-    posicion = buscarUnJuego(inventario,codigo)
+    #Implementar buscar por ID.
+    idJuego = input('Ingrese el ID del Juego: ')
+    juegos = buscarJuegoPorId(idJuego)
 
-    if posicion is not None:
+    if juegos:
 
-        nuevo_titulo = input('Ingrese el nuevo titulo: ')
-        nuevas_copias = int(input('Ingrese la nueva cantidad de copias: '))
+        for juego in juegos:    
+            Idjuego, Titulo, Plataforma, Desarrollador, Cantidad = juego
         
-        #actualizacion de los valores
-        inventario[posicion]['titulo'] = nuevo_titulo
-        inventario[posicion]['copias'] = nuevas_copias
+        while True:
+            print('1 - Cambiar Titulo')
+            print('2 - Cambiar Plataforma')
+            print('3 - Cambiar Desarollador')
+            print('4 - Cambiar Cantidad en Stock')
+            print('5 - CONFIRMAR CAMBIOS')
+            print('0 - Volver Atras')
+            opcion = int(input("Su elección: "))
+
+            if opcion == 1 :
+                Titulo = input('Ingrese nuevo Titulo: ')
+            elif opcion == 2:
+                Plataforma = input('Ingrese nueva Plataforma: ')
+            elif opcion == 3:
+                Desarrollador = input('Ingrese nuevo Desarollador: ')
+            elif opcion == 4:
+                Cantidad = int(input('Ingrese nueva Cantidad: '))
+            elif opcion == 5:
+                break
+            elif opcion == 0:
+                return
+            else:
+                print('Opción incorrecta.')
+        
+        query = '''
+            UPDATE Juegos
+            SET Titulo = ?,
+                Desarollador = ?,
+                Plataforma = ?,
+                Copias = ?
+            WHERE IdJuego = ?
+        '''
+        params = (Titulo, Desarrollador, Plataforma, Cantidad, idJuego)
+
+        ejecutarConsulta(query, params)
 
         print("El juego fue actualizado con éxito.")
-
     else:
         print('Juego no encontrado...')
         
 #4
-def eliminarUnJuego(inventario):
+def eliminarUnJuego():
 
-    codigo = input("Ingrese ID del Juego: ")
+    idJuego = input('Ingrese el ID del Juego: ')
+    juegos = buscarJuegoPorId(idJuego)
 
-    posicion = buscarUnJuego(inventario, codigo)
+    if juegos:
+        while True:
+            print("¿Está seguro que desea eliminar el Juego?")
+            print("1 - SI || 2 - NO")
+            opcion = int(input("Su elección: "))
 
-    if posicion is not None:
+            if opcion == 1:
 
-        inventario.pop(posicion)
-        print(f"El Juego ID '{codigo}' fue eliminado exitosamente.")
+                query= '''
+                    DELETE FROM Juegos
+                    WHERE IDJuego = ?
+                '''
+                params = (idJuego,)
+                ejecutarConsulta(query, params)
+
+                print("Registro borrado exitosamente!")
+                break
+            elif opcion == 2:
+                break
+            else:
+                print("Opcion incorrecta, intente nuevamete")
+    else:
+        print('Juego no encontrado...')
 
 #5
 def buscarJuegoPorTitulo(Titulo):
    
     query = """
-        SELECT * FROM libros WHERE Titulo = ?
+        SELECT * FROM Juegos WHERE Titulo = ?
     """
     params = (Titulo,)
     
@@ -175,10 +223,13 @@ def buscarJuegoPorTitulo(Titulo):
     return juego    
 
 #6
+def prestarUnJuego():
+    print("Lala")
+
 def buscarJuegoPorId(IdJuego):
 
     query = """
-        SELECT * FROM libros WHERE IdJuego = ?
+        SELECT * FROM Juegos WHERE IdJuego = ?
     """
     params = (IdJuego,)
     
@@ -188,11 +239,35 @@ def buscarJuegoPorId(IdJuego):
 
 
 #7
-def verStockBajo(inventario):
-    print("Lala")
+def verStockBajo():
+
+    query = """
+        SELECT * FROM Juegos WHERE Copias <= 5
+    """
+    juegos = ejecutarConsulta(query, '', True)
+
+    if not juegos:
+        print('Todos los juegos tienen Stock suficiente actualmente!')     
+
+    else:
+        encabezado = f"{'ID':^{5}} |{'Titulo':^{20}} |{'Plataforma':^{15}} |{'Desarollador':^{15}} |{'Stock':^{4}}"
+        separador = "-" * len(encabezado)
+
+        print('\n 📄 Listado de Juegos Bajo Stock:')
+
+        print(encabezado)
+        print(separador)
+
+        for juego in juegos:    
+            Idjuego, Titulo, Plataforma, Desarrollador, Cantidad = juego        
+            print(
+                f"{Idjuego:^{5}} |{Titulo:^{20}} |"
+                f"{Plataforma:^{15}} |{Desarrollador:^{15}} |"
+                f"{Cantidad:^{4}}"
+            )
 
 #8
-def buscarUnJuego(inventario, codigo_busqueda=''):
+def buscarUnJuego():
   
     while True:
         print('1 - Buscar por ID')
@@ -202,24 +277,24 @@ def buscarUnJuego(inventario, codigo_busqueda=''):
 
         if opcion == 1 :
             IdJuego = input('Ingrese Id del Juego a buscar: ')
-            juego = buscarJuegoPorId(IdJuego)  
-            if juego:
-                print(f'Titulo: {juego[1]}')
-            else:
-                print('ID no encontrado...')
-            return          
+            juegos = buscarJuegoPorId(IdJuego)        
         elif opcion == 2:
             titulo = input('Ingrese Titulo del Juego a buscar: ')
-            juego = buscarJuegoPorTitulo(titulo)
-            if juego:
-                print(f'Titulo: {juego[1]}')
-            else:
-                print('Titulo no encontrado...')
-            return
+            juegos = buscarJuegoPorTitulo(titulo)
         elif opcion == 0:
             return
         else:
             print('Opción incorrecta.')
+
+        if juegos:
+            for juego in juegos:
+                Idjuego, Titulo, Plataforma, Desarrollador, Cantidad = juego
+                        
+            print(f"Id: {Idjuego}, Titulo: {Titulo}, Plataforma: {Plataforma}, "
+                f"Desarrollador: {Desarrollador}, Cantidad: {Cantidad}")
+        else:
+            print('Juego no encontrado...')
+        break
 
 
 
@@ -246,7 +321,7 @@ def inicializarBaseDeDatos():
         INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
         VALUES (?, ?, ?, ?)
     '''
-    params = ("Pacman", "Consola", "Atari", 35)
+    params = ("Pacman", "Atari", "Consola", 35)
 
     cursor.execute(query, params)
     conexion.commit()
@@ -255,7 +330,7 @@ def inicializarBaseDeDatos():
         INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
         VALUES (?, ?, ?, ?)
     '''
-    params = ("Half-Life", "PC", "Sierra", 50)
+    params = ("Half-Life", "Sierra", "PC", 50)
 
     cursor.execute(query, params)
     conexion.commit()
@@ -264,7 +339,7 @@ def inicializarBaseDeDatos():
         INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
         VALUES (?, ?, ?, ?)
     '''
-    params = ("Halo", "PC/XBOX", "Microsoft", 30)
+    params = ("Halo", "Microsoft", "PC/XBOX", 30)
 
     cursor.execute(query, params)
     conexion.commit()
@@ -273,7 +348,7 @@ def inicializarBaseDeDatos():
         INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
         VALUES (?, ?, ?, ?)
     '''
-    params = ("Doom", "PC", "ID", 25)
+    params = ("Doom", "ID", "PC", 25)
 
     cursor.execute(query, params)
     conexion.commit()
@@ -282,7 +357,7 @@ def inicializarBaseDeDatos():
         INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
         VALUES (?, ?, ?, ?)
     '''
-    params = ("Counter-Strike", "PC", "Valve", 55)
+    params = ("Counter-Strike", "Valve", "PC", 55)
 
     cursor.execute(query, params)
     conexion.commit()
@@ -291,7 +366,7 @@ def inicializarBaseDeDatos():
         INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
         VALUES (?, ?, ?, ?)
     '''
-    params = ("BioShock", "PC/Consola", "2K", 35)
+    params = ("BioShock", "2K", "PC/Consola", 35)
 
     cursor.execute(query, params)
     conexion.commit()
@@ -323,5 +398,4 @@ def ejecutarConsulta(query, params=(), fetch=False):
         print(f"Error en la base de datos: {excepcion}")
         return False
 
-#algortimo principal
-gestionarLocal(inventario)
+gestionarLocal()
