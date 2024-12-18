@@ -64,7 +64,7 @@ def gestionarLocal(inventario):
             eliminarUnJuego(inventario)
             pass
         elif opcion == 5:
-            buscarJuegoPorNombre(inventario)
+            buscarJuegoPorTitulo()
             pass
         elif opcion == 6:
             #verStockBajo(inventario)
@@ -84,30 +84,32 @@ def gestionarLocal(inventario):
 #1   
 def agregarNuevoJuego(inventario):
 
-    titulo = input('Ingrese el titulo del libro: ')
+    titulo = input('Ingrese el Titulo del Juego: ')
+    juego = buscarJuegoPorTitulo(titulo)
 
-    while True:
-        #manejo de excepcion
-        try:
-            copias = int(input('Ingrese la cantidad de copias: '))
-            if copias > 0:
-                break
-            else:
-                print("Error: la cantidad de copias debe ser mayor que 0. Intente nuevamente.")
-        except ValueError:
-            print('Error: ingreso un valor no numerico')
+    if not juego:
+        desarollador = input('Ingrese el Desarollador: ')
+        plataforma = input('Ingrese la Plataforma: ')
 
-    #libro = [codigo,titulo,cantidad]
-    #diccionario
-    libro = {
-        'codigo' : codigo,
-        'titulo' : titulo,
-        'copias' : copias
-    }
-    
-    inventario.append(libro)
-    print(f'-Juego {titulo} agregado. Codigo: # ' ) 
-    print('-Agregado con éxito!' )
+        while True:
+            try:
+                copias = int(input('Ingrese copias en stock: '))
+                if copias > 0:
+                    break
+                else:
+                    print("LA COPIAS DEBEN SUPERIOR A 0.")
+            except ValueError:
+                print('ERROR DE INGRESO')
+        query = '''
+        INSERT INTO Juegos (Titulo, Desarollador, Plataforma, Copias) 
+        VALUES (?, ?, ?, ?)
+        '''
+        params = (titulo, desarollador, plataforma, copias)
+        if ejecutarConsulta(query,params):
+            print(f'Juego {titulo} agregado con exito!')
+    else:
+        print('Titulo ya ingresaso, compruebe la lista')
+
 
 #2
 def mostrarListaJuegos(inventario):    
@@ -161,46 +163,65 @@ def eliminarUnJuego(inventario):
         print(f"El Juego ID '{codigo}' fue eliminado exitosamente.")
 
 #5
-def buscarJuegoPorNombre(inventario):
+def buscarJuegoPorTitulo(Titulo):
+   
+    query = """
+        SELECT * FROM libros WHERE Titulo = ?
+    """
+    params = (Titulo,)
+    
+    juego = ejecutarConsulta(query, params, True)
 
-    codigo = input('Ingrese ID del Juego a prestar: ')
-
-    posicion = buscarUnJuego(inventario,codigo)
-
-    if posicion is not None:
-
-        if inventario[posicion]['copias'] > 0:
-
-            cantidad = int(input('Ingrese cantidad de copias a prestar: '))
-
-            if cantidad > 0 and cantidad <= inventario[posicion]['copias']:
-
-                inventario[posicion]['copias'] -= cantidad
-                print(f'Prestamo exitoso.')
-
-            else:
-                print(f'Cantidad no disponible, se disponen de: {inventario[posicion]['copias']}')
-        else:
-            print('No hay disponibilidad del Juego actualmente.')
-        
-    else:
-        print(f"Id no encontrado...")    
+    return juego    
 
 #6
+def buscarJuegoPorId(IdJuego):
+
+    query = """
+        SELECT * FROM libros WHERE IdJuego = ?
+    """
+    params = (IdJuego,)
+    
+    juego = ejecutarConsulta(query, params, True)
+
+    return juego
+
+
+#7
 def verStockBajo(inventario):
     print("Lala")
 
+#8
 def buscarUnJuego(inventario, codigo_busqueda=''):
   
-    posicion = None
+    while True:
+        print('1 - Buscar por ID')
+        print('2 - Buscar por Titulo')
+        print('0 - Volver Atras')
+        opcion = int(input("Su elección: "))
 
-    for indice in range(len(inventario)):
+        if opcion == 1 :
+            IdJuego = input('Ingrese Id del Juego a buscar: ')
+            juego = buscarJuegoPorId(IdJuego)  
+            if juego:
+                print(f'Titulo: {juego[1]}')
+            else:
+                print('ID no encontrado...')
+            return          
+        elif opcion == 2:
+            titulo = input('Ingrese Titulo del Juego a buscar: ')
+            juego = buscarJuegoPorTitulo(titulo)
+            if juego:
+                print(f'Titulo: {juego[1]}')
+            else:
+                print('Titulo no encontrado...')
+            return
+        elif opcion == 0:
+            return
+        else:
+            print('Opción incorrecta.')
 
-        if inventario[indice]['codigo'] == codigo_busqueda:
-            posicion = indice
-            break
 
-    return posicion
 
 #Creamos la DB con algunos registros
 def inicializarBaseDeDatos():
